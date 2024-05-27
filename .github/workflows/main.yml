@@ -10,21 +10,6 @@ jobs:
     name: 'Terraform'
     runs-on: ubuntu-latest
 
-    services:
-      localstack:
-        image: localstack/localstack:latest
-        ports:
-          - 4566:4566
-        options: >-
-          --env SERVICES=s3
-          --env EDGE_PORT=4566
-          --env DATA_DIR=/tmp/localstack/data
-          --env DEBUG=1
-          --health-cmd "curl -f http://localhost:4566/health || exit 1"
-          --health-interval 5s
-          --health-retries 20
-          --health-timeout 2s
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -34,12 +19,28 @@ jobs:
       with:
         terraform_version: 1.0.0
 
+    - name: Start Localstack
+      uses: localstack/localstack-action@master
+      with:
+        services: s3
+
+    - name: Wait for Localstack to be ready
+      run: >
+        until curl -s http://localhost:4566/health | grep '"s3": "running"';
+        do
+          echo "Waiting for Localstack to be ready...";
+          sleep 5;
+        done
+
+    - name: Debug Localstack
+      run: |
+        echo "Localstack containers:"
+        docker ps -a
+        echo "Localstack logs:"
+        docker logs $(docker ps -q --filter ancestor=localstack/localstack:latest)
+
     - name: Terraform Init
       run: terraform init
-
-    - name: Terraform Apply
-      run: terraform apply -auto-approve
-
 
     - name: Terraform Apply
       run: terraform apply -auto-approve
