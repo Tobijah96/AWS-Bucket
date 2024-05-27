@@ -33,6 +33,13 @@ jobs:
           sleep 5;
         done
 
+    - name: Debug Localstack
+      run: |
+        echo "Localstack containers:"
+        docker ps -a
+        echo "Localstack logs:"
+        docker logs $(docker ps -q --filter ancestor=localstack/localstack)
+
     - name: Terraform Init
       run: terraform init
 
