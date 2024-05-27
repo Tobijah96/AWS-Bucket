@@ -19,10 +19,11 @@ jobs:
       with:
         terraform_version: 1.0.0
 
+    - name: Install Localstack CLI
+      run: pip install localstack
+
     - name: Start Localstack
-      uses: localstack/localstack-action@master
-      with:
-        services: s3
+      run: localstack start -d
 
     - name: Wait for Localstack to be ready
       run: >
@@ -31,13 +32,6 @@ jobs:
           echo "Waiting for Localstack to be ready...";
           sleep 5;
         done
-
-    - name: Debug Localstack
-      run: |
-        echo "Localstack containers:"
-        docker ps -a
-        echo "Localstack logs:"
-        docker logs $(docker ps -q --filter ancestor=localstack/localstack:latest)
 
     - name: Terraform Init
       run: terraform init
