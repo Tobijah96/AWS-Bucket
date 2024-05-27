@@ -9,6 +9,7 @@ jobs:
   terraform:
     name: 'Terraform'
     runs-on: ubuntu-latest
+
     services:
       localstack:
         image: localstack/localstack:latest
@@ -16,12 +17,14 @@ jobs:
           - 4566:4566
         options: >-
           --env SERVICES=s3
+          --env EDGE_PORT=4566
+          --env DATA_DIR=/tmp/localstack/data
           --env DEBUG=1
           --health-cmd "curl -f http://localhost:4566/health || exit 1"
           --health-interval 5s
           --health-retries 20
           --health-timeout 2s
-          
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -33,6 +36,10 @@ jobs:
 
     - name: Terraform Init
       run: terraform init
+
+    - name: Terraform Apply
+      run: terraform apply -auto-approve
+
 
     - name: Terraform Apply
       run: terraform apply -auto-approve
